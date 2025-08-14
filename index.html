@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học Tiếng Nhật</title>
+    <!-- Liên kết đến Font Awesome từ CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Liên kết đến file CSS local -->
+    <link rel="stylesheet" href="styles.css">
+    <!-- Liên kết đến Wanakana từ CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/wanakana@4.0.0/umd/wanakana.min.js"></script>
+</head>
+<body>
+    <!-- Thông báo -->
+    <div id="notification" class="notification hidden">Đã sửa xong!</div>
+    <!-- Navigation Menu -->
+    <nav class="main-nav">
+        <ul class="nav-menu">
+            <li id="nav-home" class="nav-item active">
+                <i class="fas fa-home" aria-label="Trang chủ"></i> 
+                <span class="nav-text">Trang chủ</span>
+            </li>
+            <li id="nav-quiz" class="nav-item">
+                <i class="fas fa-question-circle" aria-label="Quiz"></i> 
+                <span class="nav-text">Quiz</span>
+            </li>
+            <li id="nav-vocab" class="nav-item">
+                <i class="fas fa-book" aria-label="Từ vựng"></i> 
+                <span class="nav-text">Từ vựng</span>
+            </li>
+            <li id="nav-settings" class="nav-item">
+                <i class="fas fa-cog" aria-label="Cài đặt"></i> 
+                <span class="nav-text">Cài đặt</span>
+            </li>
+            <li class="nav-item dark-mode-toggle">
+                <span class="icon-sun"><i class="fas fa-sun"></i></span>
+                <span class="icon-moon hidden"><i class="fas fa-moon"></i></span>
+                <label class="switch">
+                    <input type="checkbox" id="dark-mode-toggle">
+                    <span class="slider"></span>
+                </label>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Container chính -->
+    <div class="container">
+        <!-- Main content -->
+        <main>
+            <!-- Section Trang chủ -->
+            <section id="dashboard" class="section">
+                <div class="dashboard-hero">
+                    <div class="hero-content">
+                        <h1 class="hero-title">🎌 Học Tiếng Nhật</h1>
+                        <p class="hero-subtitle">Khám phá ngôn ngữ và văn hóa Nhật Bản</p>
+                        <div class="hero-stats">
+                            <div class="stat-card">
+                                <div class="stat-icon">📚</div>
+                                <div class="stat-info">
+                                    <span class="stat-number" id="total-vocab">0</span>
+                                    <span class="stat-label">Từ vựng</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">🎯</div>
+                                <div class="stat-info">
+                                    <span class="stat-number">∞</span>
+                                    <span class="stat-label">Bài học</span>
+                                </div>
+                            </div>
+                            <div class="stat-card">
+                                <div class="stat-icon">⭐</div>
+                                <div class="stat-info">
+                                    <span class="stat-number">Pro</span>
+                                    <span class="stat-label">Cấp độ</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="lesson-preview">
+                    <h2 class="section-title">🌸 Bài học nổi bật</h2>
+                    <div class="lesson-grid" id="lesson-preview-grid">
+                        <!-- Các bài học sẽ được thêm động -->
+                    </div>
+                </div>
+                
+                <div class="quick-actions">
+                    <h2 class="section-title">🚀 Hành động nhanh</h2>
+                    <div class="action-cards">
+                        <div class="action-card" id="quick-quiz">
+                            <div class="action-icon">🎮</div>
+                            <div class="action-content">
+                                <h3>Bắt đầu Quiz</h3>
+                                <p>Kiểm tra kiến thức của bạn</p>
+                            </div>
+                            <div class="action-arrow">→</div>
+                        </div>
+                        <div class="action-card" id="quick-add-vocab">
+                            <div class="action-icon">➕</div>
+                            <div class="action-content">
+                                <h3>Thêm từ vựng</h3>
+                                <p>Mở rộng kho từ vựng</p>
+                            </div>
+                            <div class="action-arrow">→</div>
+                        </div>
+                        <div class="action-card" id="reset-vocab">
+                            <div class="action-icon">🔄</div>
+                            <div class="action-content">
+                                <h3>Reset dữ liệu</h3>
+                                <p>Khôi phục từ vựng mặc định</p>
+                            </div>
+                            <div class="action-arrow">→</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Section Quiz -->
+            <section id="quiz-section" class="section hidden">
+                <div id="lesson-selection">
+                    <div class="lesson-selection-header">
+                        <h2 class="lesson-title">🎯 Chọn bài học</h2>
+                        <p class="lesson-subtitle">Chọn những bài học bạn muốn luyện tập</p>
+                    </div>
+                    
+                    <div class="lesson-cards-container">
+                        <div class="lesson-cards" id="lesson-buttons">
+                            <!-- Các thẻ bài học sẽ được thêm động bằng JavaScript -->
+                        </div>
+                    </div>
+                    
+                    <div class="lesson-selection-footer">
+                        <div class="selection-info">
+                            <p id="selected-vocab-count">Đã chọn: 0 từ vựng</p>
+                            <div id="error-message" class="error-message hidden">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                Bài học đã chọn phải có ít nhất 4 từ vựng để bắt đầu quiz
+                            </div>
+                        </div>
+                        
+                        <div class="lesson-actions">
+                            <button type="button" id="select-all-btn" class="btn-secondary">
+                                <i class="fas fa-check-double"></i> Chọn tất cả
+                            </button>
+                            <button type="button" id="start-quiz-btn" class="btn-primary">
+                                <i class="fas fa-play"></i> Bắt đầu Quiz
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="quiz-card hidden">
+                    <!-- Thông tin bài học đang luyện tập -->
+                    <div class="quiz-lesson-info">
+                        <div class="lesson-info-header">
+                            <i class="fas fa-book-open"></i>
+                            <span>Đang luyện tập:</span>
+                        </div>
+                        <div class="lesson-info-content" id="quiz-lesson-info">
+                            <!-- Thông tin bài học sẽ được thêm động -->
+                        </div>
+                    </div>
+                    
+                    <div class="quiz-header">
+                        <button type="button" id="show-meaning-btn" class="icon-btn"><i class="fas fa-lightbulb"></i></button>
+                        <div class="quiz-question">
+                            <h3 id="quiz-kanji"></h3>
+                            <p id="quiz-meaning" class="hidden"></p>
+                        </div>
+                        <button type="button" onclick="playQuizAudio()" class="play-audio-btn">🔊</button>
+                    </div>
+                    <div class="progress-bar">
+                        <div id="progress"></div>
+                        <span id="progress-text">0/0</span>
+                    </div>
+                    <div class="options">
+                        <button type="button" class="option-btn"></button>
+                        <button type="button" class="option-btn"></button>
+                        <button type="button" class="option-btn"></button>
+                        <button type="button" class="option-btn"></button>
+                    </div>
+                    <p id="quiz-feedback"></p>
+                    <div class="navigation">
+                        <button type="button" id="back-to-lessons" class="nav-btn">Quay lại chọn bài học</button>
+                        <button type="button" id="quiz-restart" class="nav-btn"><i class="fas fa-redo"></i> Bắt đầu lại</button>
+                        <button type="button" id="quiz-next" class="nav-btn">Câu tiếp theo <i class="fas fa-arrow-right"></i></button>
+                    </div>
+                </div>
+            </section>
+<section id="flashcard-section" class="section hidden">
+    <!-- Phần chọn bài học -->
+    <div id="flashcard-lesson-selection">
+        <h3>Chọn bài học cho Flashcard:</h3>
+        <div class="lesson-buttons" id="flashcard-lesson-buttons"></div>
+        <div class="lesson-actions">
+            <button type="button" id="flashcard-select-all-btn">Chọn tất cả</button>
+            <button type="button" id="start-flashcard-btn">Bắt đầu Flashcard</button>
+        </div>
+    </div>
+    <!-- Phần hiển thị thẻ -->
+    <div class="flashcard-card hidden">
+        <div class="flashcard-front">
+            <h3 id="flashcard-kanji"></h3>
+        </div>
+        <div class="flashcard-back hidden">
+            <p id="flashcard-meaning"></p>
+            <p id="flashcard-hiragana"></p>
+            <p id="flashcard-romaji"></p>
+        </div>
+        <button type="button" id="flip-btn">Lật thẻ</button>
+        <button type="button" id="next-flashcard-btn">Thẻ tiếp theo</button>
+        <button type="button" id="back-to-flashcard-lessons">Quay lại chọn bài học</button>
+    </div>
+</section>
+            <!-- Section Quản lý từ vựng -->
+            <section id="vocab-section" class="section hidden">
+                <div class="vocab-header">
+                    <div class="vocab-title-section">
+                        <h2 class="section-title">📚 Quản lý từ vựng</h2>
+                        <div class="vocab-stats">
+                            <span id="total-vocab-count" class="vocab-summary">Tổng số từ vựng: 0</span>
+                            <span id="vocab-count-display" class="vocab-count">Hiển thị: 0/0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Control Panel -->
+                <div class="vocab-control-panel">
+                    <!-- Filter & Search Row -->
+                    <div class="control-row">
+                        <div class="control-group">
+                            <label for="lesson-select"><i class="fas fa-filter"></i> Lọc bài học:</label>
+                            <select id="lesson-select">
+                                <option value="all">Tất cả bài học</option>
+                            </select>
+                        </div>
+                        
+                        <div class="control-group search-group">
+                            <label for="vocab-search"><i class="fas fa-search"></i> Tìm kiếm:</label>
+                            <div class="search-input-wrapper">
+                                <input type="text" id="vocab-search" placeholder="Tìm theo kanji, hiragana, romaji hoặc nghĩa...">
+                                <button type="button" id="clear-search-btn" class="btn-clear"><i class="fas fa-times"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Action Buttons Row -->
+                    <div class="control-row action-row">
+                        <div class="control-group">
+                            <label><i class="fas fa-sort"></i> Sắp xếp & Tổ chức:</label>
+                            <div class="button-group">
+                                <button type="button" id="sort-original-btn" class="btn btn-success">
+                                    <i class="fas fa-file-excel"></i> Thứ tự Excel gốc
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label><i class="fas fa-file-import"></i> Import/Export:</label>
+                            <div class="button-group">
+                                <div class="file-input-group">
+                                    <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="file-input">
+                                    <button type="button" id="import-excel-btn" class="btn btn-primary">
+                                        <i class="fas fa-file-import"></i> Nhập Excel
+                                    </button>
+                                </div>
+                                <button type="button" id="download-excel-btn" class="btn btn-secondary">
+                                    <i class="fas fa-download"></i> Tải Excel
+                                </button>
+                                <a href="sample.xlsx" download="sample.xlsx" class="btn btn-info">
+                                    <i class="fas fa-file-download"></i> File mẫu
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <div class="control-group">
+                            <label><i class="fas fa-trash-alt"></i> Quản lý dữ liệu:</label>
+                            <div class="button-group">
+                                <button type="button" id="show-trash-btn" class="btn btn-warning">
+                                    <i class="fas fa-trash-restore"></i> Thùng Rác
+                                </button>
+                                <button type="button" id="delete-all-vocab-btn" class="btn btn-danger">
+                                    <i class="fas fa-trash"></i> Xóa tất cả
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Table Container -->
+                <div class="table-container">
+                    <table id="wordTable" class="vocab-table">
+                        <thead>
+                            <tr>
+                                <th class="col-stt">STT</th>
+                                <th class="col-kanji">Kanji</th>
+                                <th class="col-hiragana">Hiragana/Katakana</th>
+                                <th class="col-romaji">Romaji</th>
+                                <th class="col-meaning">Nghĩa</th>
+                                <th class="col-lesson">Bài</th>
+                                <th class="col-audio">Âm thanh</th>
+                                <th class="col-actions">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section Thùng rác -->
+            <section id="trash-section" class="section hidden">
+                <div class="trash-header">
+                    <div class="trash-title-section">
+                        <h2 class="section-title">🗑️ Thùng Rác</h2>
+                        <div class="trash-actions">
+                            <button type="button" id="close-trash-btn" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Quay lại từ vựng
+                            </button>
+                            <button type="button" id="permanent-delete-all-btn" class="btn btn-danger">
+                                <i class="fas fa-trash-alt"></i> Xóa vĩnh viễn tất cả
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="table-container">
+                    <table id="trashTable" class="vocab-table trash-table">
+                        <thead>
+                            <tr>
+                                <th class="col-kanji">Kanji</th>
+                                <th class="col-hiragana">Hiragana/Katakana</th>
+                                <th class="col-romaji">Romaji</th>
+                                <th class="col-meaning">Nghĩa</th>
+                                <th class="col-lesson">Bài</th>
+                                <th class="col-actions">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Section Cài đặt -->
+            <section id="settings-section" class="section hidden">
+                <div class="settings-header">
+                    <div class="settings-title-section">
+                        <h2 class="section-title">⚙️ Cài đặt</h2>
+                        <p class="settings-subtitle">Tùy chỉnh trải nghiệm học tập của bạn</p>
+                    </div>
+                </div>
+                
+                <div class="settings-container">
+                    <!-- Quiz Settings Group -->
+                    <div class="settings-group">
+                        <div class="settings-group-header">
+                            <h3><i class="fas fa-brain"></i> Cài đặt Quiz</h3>
+                            <p>Tùy chỉnh cách thức hoạt động của quiz</p>
+                        </div>
+                        
+                        <div class="settings-cards">
+                            <!-- Random Questions Setting -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-random"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Xáo trộn câu hỏi</h4>
+                                        <p>Thay đổi thứ tự câu hỏi một cách ngẫu nhiên để tăng hiệu quả học tập</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button id="randomize-options-btn" class="setting-toggle">
+                                        <span class="toggle-slider"></span>
+                                    </button>
+                                    <span class="setting-status" id="randomize-status">Tắt</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Retry Interval Setting -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-redo-alt"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Khoảng cách ôn lại</h4>
+                                        <p>Số câu hỏi cần trả lời trước khi từ sai được hiển thị lại</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="number-input-group">
+                                        <input type="number" id="retry-interval" min="1" max="50" value="10">
+                                        <span class="input-suffix">câu</span>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Retry Max Setting -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-sync-alt"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Số lần ôn lại tối đa</h4>
+                                        <p>Giới hạn số lần một từ sai được lặp lại trong quiz</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <div class="number-input-group">
+                                        <input type="number" id="retry-max" min="1" max="10" value="3">
+                                        <span class="input-suffix">lần</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Learning Preferences Group -->
+                    <div class="settings-group">
+                        <div class="settings-group-header">
+                            <h3><i class="fas fa-graduation-cap"></i> Tùy chọn học tập</h3>
+                            <p>Cá nhân hóa phương pháp học tập</p>
+                        </div>
+                        
+                        <div class="settings-cards">
+                            <!-- Sound Effects Setting -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-volume-up"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Âm thanh</h4>
+                                        <p>Bật/tắt hiệu ứng âm thanh khi trả lời câu hỏi</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button id="sound-effects-btn" class="setting-toggle active">
+                                        <span class="toggle-slider"></span>
+                                    </button>
+                                    <span class="setting-status" id="sound-status">Bật</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Auto-pronunciation Setting -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-microphone"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Phát âm tự động</h4>
+                                        <p>Tự động phát âm từ vựng khi hiển thị câu hỏi mới</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button id="auto-pronunciation-btn" class="setting-toggle">
+                                        <span class="toggle-slider"></span>
+                                    </button>
+                                    <span class="setting-status" id="pronunciation-status">Tắt</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- App Preferences Group -->
+                    <div class="settings-group">
+                        <div class="settings-group-header">
+                            <h3><i class="fas fa-palette"></i> Giao diện</h3>
+                            <p>Tùy chỉnh giao diện ứng dụng</p>
+                        </div>
+                        
+                        <div class="settings-cards">
+                            <!-- Dark Mode Setting (reference existing toggle) -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-moon"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Chế độ tối</h4>
+                                        <p>Chuyển đổi giữa giao diện sáng và tối</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <span class="setting-note">Sử dụng nút ở navigation bar</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Data Management Group -->
+                    <div class="settings-group">
+                        <div class="settings-group-header">
+                            <h3><i class="fas fa-database"></i> Quản lý dữ liệu</h3>
+                            <p>Sao lưu và khôi phục dữ liệu học tập</p>
+                        </div>
+                        
+                        <div class="settings-cards">
+                            <!-- Export Progress Setting -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-download"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Xuất tiến độ</h4>
+                                        <p>Tải xuống dữ liệu học tập để sao lưu</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button id="export-progress-btn" class="btn btn-primary">
+                                        <i class="fas fa-download"></i> Xuất dữ liệu
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <!-- Reset Progress Setting -->
+                            <div class="setting-card warning-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-exclamation-triangle"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Reset tiến độ</h4>
+                                        <p>Xóa toàn bộ tiến độ học tập và bắt đầu lại từ đầu</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button id="reset-progress-btn" class="btn btn-danger">
+                                        <i class="fas fa-trash-alt"></i> Reset tiến độ
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+    
+    <!-- Floating Add Button (luôn hiển thị) -->
+    <button class="floating-add-btn" id="floating-add-btn" type="button">
+        <i class="fas fa-plus"></i>
+    </button>
+
+    <!-- Backdrop overlay for add vocab form -->
+    <div class="add-vocab-backdrop" id="add-vocab-backdrop"></div>
+
+    <!-- Form thêm từ vựng floating (ẩn mặc định) -->
+    <div class="add-vocab-card hidden" id="add-vocab-card">
+        <div class="card-header">
+            <h3 class="card-title" id="form-title"><i class="fas fa-plus-circle"></i> Thêm từ vựng mới</h3>
+            <button type="button" class="close-btn" id="close-add-form">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form id="add-vocab-form" class="enhanced-form">
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="kanji"><i class="fas fa-yin-yang"></i> Kanji</label>
+                    <input type="text" id="kanji" placeholder="例: 日本">
+                </div>
+                <div class="form-group required">
+                    <label for="hiragana"><i class="fas fa-font"></i> Hiragana/Katakana *</label>
+                    <input type="text" id="hiragana" placeholder="例: にほん" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="romaji"><i class="fas fa-language"></i> Romaji</label>
+                    <input type="text" id="romaji" placeholder="例: nihon (tự động sinh)">
+                </div>
+                <div class="form-group required">
+                    <label for="meaning"><i class="fas fa-comment-alt"></i> Nghĩa *</label>
+                    <input type="text" id="meaning" placeholder="例: Nhật Bản" required>
+                </div>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group required">
+                    <label for="lesson"><i class="fas fa-bookmark"></i> Bài *</label>
+                    <input type="text" id="lesson" placeholder="例: 1" required>
+                </div>
+                <div class="form-group">
+                    <button type="submit" class="btn-add-vocab" id="submit-btn">
+                        <i class="fas fa-plus"></i> Thêm từ vựng
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Các phần tử âm thanh -->
+    <audio id="correct-sound" src="sound/correct.mp3" preload="auto"></audio>
+    <audio id="incorrect-sound" src="sound/incorrect.mp3" preload="auto"></audio>
+    <audio id="click-sound" src="sound/click.mp3" preload="auto"></audio>
+
+    <!-- Liên kết đến các file JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
