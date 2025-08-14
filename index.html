@@ -33,6 +33,10 @@
                 <i class="fas fa-cog" aria-label="Cài đặt"></i> 
                 <span class="nav-text">Cài đặt</span>
             </li>
+            <li id="nav-help" class="nav-item">
+                <i class="fas fa-question-circle" aria-label="Trợ giúp"></i> 
+                <span class="nav-text">Trợ giúp</span>
+            </li>
             <li class="nav-item dark-mode-toggle">
                 <span class="icon-sun"><i class="fas fa-sun"></i></span>
                 <span class="icon-moon hidden"><i class="fas fa-moon"></i></span>
@@ -416,6 +420,25 @@
                                     </div>
                                 </div>
                             </div>
+                            
+                            <!-- Auto Continue Setting -->
+                            <div class="setting-card">
+                                <div class="setting-info">
+                                    <div class="setting-icon">
+                                        <i class="fas fa-fast-forward"></i>
+                                    </div>
+                                    <div class="setting-content">
+                                        <h4>Tự động tiếp tục</h4>
+                                        <p>Tự động chuyển sang câu tiếp theo khi trả lời đúng</p>
+                                    </div>
+                                </div>
+                                <div class="setting-control">
+                                    <button id="auto-continue-btn" class="setting-toggle">
+                                        <span class="toggle-slider"></span>
+                                    </button>
+                                    <span class="setting-status" id="auto-continue-status">Tắt</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
@@ -594,6 +617,133 @@
                 </div>
             </div>
         </form>
+    </div>
+
+    <!-- Help Modal -->
+    <div class="help-modal" id="help-modal">
+        <div class="help-modal-content">
+            <div class="help-header">
+                <h2 class="help-title">🌸 Trợ giúp & Hỗ trợ 🌸</h2>
+                <button type="button" class="help-close-btn" id="help-close-btn">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="help-content">
+                <!-- Quick Guide Section -->
+                <div class="help-section">
+                    <div class="help-section-header">
+                        <h3><i class="fas fa-rocket"></i> Hướng dẫn nhanh</h3>
+                    </div>
+                    <div class="help-cards">
+                        <div class="help-card">
+                            <div class="help-card-icon">🎯</div>
+                            <h4>Quiz</h4>
+                            <p>Chọn bài học → Bắt đầu Quiz → Trả lời câu hỏi để học từ vựng</p>
+                        </div>
+                        <div class="help-card">
+                            <div class="help-card-icon">📚</div>
+                            <h4>Từ vựng</h4>
+                            <p>Thêm, sửa, xóa từ vựng. Import/Export file Excel để quản lý</p>
+                        </div>
+                        <div class="help-card">
+                            <div class="help-card-icon">⚙️</div>
+                            <h4>Cài đặt</h4>
+                            <p>Tùy chỉnh quiz, âm thanh, giao diện theo sở thích</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Features Section -->
+                <div class="help-section">
+                    <div class="help-section-header">
+                        <h3><i class="fas fa-star"></i> Tính năng nổi bật</h3>
+                    </div>
+                    <div class="help-features">
+                        <div class="help-feature">
+                            <span class="feature-icon">🔄</span>
+                            <span>Xáo trộn câu hỏi ngẫu nhiên</span>
+                        </div>
+                        <div class="help-feature">
+                            <span class="feature-icon">🔊</span>
+                            <span>Phát âm tự động từ vựng</span>
+                        </div>
+                        <div class="help-feature">
+                            <span class="feature-icon">🌙</span>
+                            <span>Chế độ tối bảo vệ mắt</span>
+                        </div>
+                        <div class="help-feature">
+                            <span class="feature-icon">📊</span>
+                            <span>Import/Export file Excel</span>
+                        </div>
+                        <div class="help-feature">
+                            <span class="feature-icon">🗑️</span>
+                            <span>Thùng rác phục hồi từ vựng</span>
+                        </div>
+                        <div class="help-feature">
+                            <span class="feature-icon">🔍</span>
+                            <span>Tìm kiếm và lọc từ vựng</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Troubleshooting Section -->
+                <div class="help-section">
+                    <div class="help-section-header">
+                        <h3><i class="fas fa-tools"></i> Khắc phục sự cố</h3>
+                    </div>
+                    <div class="help-troubleshooting">
+                        <div class="trouble-item">
+                            <h4>❓ Không nghe được âm thanh?</h4>
+                            <p>Kiểm tra âm lượng thiết bị và bật âm thanh trong Cài đặt</p>
+                        </div>
+                        <div class="trouble-item">
+                            <h4>❓ Không import được file Excel?</h4>
+                            <p>Đảm bảo file có đúng định dạng .xlsx hoặc .xls. Tải file mẫu để tham khảo</p>
+                        </div>
+                        <div class="trouble-item">
+                            <h4>❓ Quiz không hoạt động?</h4>
+                            <p>Đảm bảo bài học có ít nhất 4 từ vựng. Thử làm mới trang web</p>
+                        </div>
+                        <div class="trouble-item">
+                            <h4>❓ Mất dữ liệu từ vựng?</h4>
+                            <p>Kiểm tra Thùng rác để phục hồi. Xuất dữ liệu thường xuyên để sao lưu</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contact Section -->
+                <div class="help-section contact-section">
+                    <div class="help-section-header">
+                        <h3><i class="fas fa-heart"></i> Liên hệ & Hỗ trợ</h3>
+                    </div>
+                    <div class="contact-content">
+                        <div class="contact-intro">
+                            <p>🌟 Gặp vấn đề hoặc có ý kiến đóng góp? Hãy liên hệ với mình nhé! 🌟</p>
+                        </div>
+                        <div class="contact-card">
+                            <div class="contact-avatar">
+                                <div class="avatar-circle">
+                                    <i class="fab fa-facebook-f"></i>
+                                </div>
+                            </div>
+                            <div class="contact-info">
+                                <h4>💬 Liên hệ qua Facebook</h4>
+                                <p>Mình sẽ phản hồi trong thời gian sớm nhất!</p>
+                                <a href="https://www.facebook.com/MTrong2004" target="_blank" class="contact-btn">
+                                    <i class="fab fa-facebook-messenger"></i>
+                                    Nhắn tin ngay
+                                </a>
+                            </div>
+                        </div>
+                        <div class="contact-footer">
+                            <p>🙏 Cảm ơn bạn đã sử dụng ứng dụng học tiếng Nhật! 🙏</p>
+                            <div class="contact-emojis">✨ 🌸 ⭐ 🎌 ✨</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <!-- Các phần tử âm thanh -->

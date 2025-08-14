@@ -11,6 +11,7 @@ let correctWords = new Set(); // Tập hợp các từ đã trả lời đúng
 let filteredVocab = []; // Từ vựng đã lọc cho quiz
 let isVocabularyLoaded = false; // Cờ theo dõi trạng thái load từ vựng
 let currentEditingRow = null; // Theo dõi row đang được edit để tránh conflict
+let isAutoContinue = false; // Trạng thái tự động tiếp tục khi trả lời đúng
 
 // Lấy giá trị cài đặt từ localStorage hoặc đặt mặc định
 let retryInterval = localStorage.getItem('retryInterval') ? parseInt(localStorage.getItem('retryInterval'), 10) : 10;
@@ -19,6 +20,11 @@ let retryMax = localStorage.getItem('retryMax') ? parseInt(localStorage.getItem(
 // Khôi phục cài đặt random từ localStorage
 if (localStorage.getItem('isRandomized') !== null) {
     isRandomized = localStorage.getItem('isRandomized') === 'true';
+}
+
+// Khôi phục cài đặt auto-continue từ localStorage
+if (localStorage.getItem('isAutoContinue') !== null) {
+    isAutoContinue = localStorage.getItem('isAutoContinue') === 'true';
 }
 
 // Cập nhật cài đặt khi người dùng thay đổi
@@ -76,7 +82,14 @@ window.addEventListener('load', () => {
                 
                 // Auto-sort and display vocabulary
                 refreshVocabularyTable();
+                
+                // Tạo lesson buttons cho quiz
+                populateLessonButtons();
+                
                 updateSelectedVocabCount();
+                
+                // Cập nhật trạng thái nút start quiz sau khi load xong
+                updateStartQuizButton();
             });
     } else {
         vocabulary = JSON.parse(localStorage.getItem('vocabulary'));
@@ -91,7 +104,14 @@ window.addEventListener('load', () => {
         
         // Auto-sort and display vocabulary
         refreshVocabularyTable();
+        
+        // Tạo lesson buttons cho quiz
+        populateLessonButtons();
+        
         updateSelectedVocabCount();
+        
+        // Cập nhật trạng thái nút start quiz sau khi load xong
+        updateStartQuizButton();
     }
 
     if (localStorage.getItem('trashBin')) {
@@ -102,6 +122,20 @@ window.addEventListener('load', () => {
     document.getElementById('start-quiz-btn').addEventListener('click', () => {
         startQuiz();
     });
+
+    // Đảm bảo XLSX library đã load trước khi đăng ký event listeners
+    if (typeof XLSX !== 'undefined') {
+        setupExcelHandlers();
+    } else {
+        // Đợi một chút cho XLSX library load
+        setTimeout(() => {
+            if (typeof XLSX !== 'undefined') {
+                setupExcelHandlers();
+            } else {
+                console.error('XLSX library failed to load');
+            }
+        }, 1000);
+    }
 });
 
 // Hàm bắt đầu quiz (di chuyển ra ngoài để có thể gọi từ mọi nơi)
@@ -167,6 +201,16 @@ function displayQuizLessonInfo(selectedLessons) {
     document.getElementById('retry-interval').value = retryInterval;
     document.getElementById('retry-max').value = retryMax;
     updateProgressBar();
+
+    // Bật dark mode và auto-continue mặc định nếu chưa có cài đặt
+    if (localStorage.getItem('darkMode') === null) {
+        localStorage.setItem('darkMode', 'enabled');
+    }
+    
+    if (localStorage.getItem('isAutoContinue') === null) {
+        localStorage.setItem('isAutoContinue', 'true');
+        isAutoContinue = true;
+    }
 
     if (localStorage.getItem('darkMode') === 'enabled') {
         document.body.classList.add('dark-mode');
@@ -265,6 +309,15 @@ function populateLessonButtons() {
 
 // Cập nhật trạng thái nút "Bắt đầu Quiz"
 function updateStartQuizButton() {
+    // Kiểm tra xem vocabulary đã được load chưa
+    if (!isVocabularyLoaded || vocabulary.length === 0) {
+        const startQuizBtn = document.getElementById('start-quiz-btn');
+        const errorMessage = document.getElementById('error-message');
+        startQuizBtn.disabled = true;
+        errorMessage.classList.add('hidden');
+        return;
+    }
+    
     const selectedCards = document.querySelectorAll('.lesson-card.selected');
     const selectedLessons = Array.from(selectedCards).map(card => card.dataset.lesson);
     const filteredVocabTemp = vocabulary.filter(word => selectedLessons.includes(word.lesson.toString()));
@@ -907,6 +960,9 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('Floating button found:', floatingBtn);
     console.log('Add vocab card found:', addVocabCard);
     console.log('Add vocab form found:', addVocabForm);
+    
+    // Setup help modal
+    setupHelpModal();
 
     // Mở form thêm từ vựng
     function openAddForm() {
@@ -1127,25 +1183,195 @@ document.getElementById('import-excel-btn').addEventListener('click', () => {
         // Sort and refresh table once after all imports
         refreshVocabularyTable();
         
-        if (errors.length > 0) alert(`Import hoàn tất với lỗi:\n${errors.join('\n')}`);
-        else alert('Import thành công!');
+        // Cập nhật lesson buttons và các UI khác
+        populateLessonButtons();
+        updateSelectedVocabCount();
+        updateStartQuizButton();
+        
+        if (errors.length > 0) {
+            alert(`Import hoàn tất với ${tempVocabulary.length} từ vựng thành công và ${errors.length} lỗi:\n${errors.join('\n')}`);
+        } else {
+            alert(`Import thành công ${tempVocabulary.length} từ vựng!`);
+        }
         fileInput.value = '';
     };
     reader.readAsArrayBuffer(file);
 });
 
-document.getElementById('download-excel-btn').addEventListener('click', () => {
-    const worksheet = XLSX.utils.json_to_sheet(vocabulary.map(v => ({
-        Kanji: v.kanji || 'N/A',
-        'Hiragana/Katakana': v.hiragana,
-        Romaji: v.romaji,
-        Nghĩa: v.meaning,
-        Bài: v.lesson
-    })));
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Từ vựng');
-    XLSX.writeFile(workbook, 'vocabulary.xlsx');
-});
+// Tạo function riêng để setup Excel handlers
+function setupExcelHandlers() {
+    console.log('Setting up Excel handlers...');
+    
+    // Import Excel handler - di chuyển code vào đây
+    const importBtn = document.getElementById('import-excel-btn');
+    if (importBtn) {
+        // Remove existing listeners to avoid duplicates
+        const newImportBtn = importBtn.cloneNode(true);
+        importBtn.parentNode.replaceChild(newImportBtn, importBtn);
+        
+        newImportBtn.addEventListener('click', () => {
+            console.log('Import Excel button clicked');
+            const fileInput = document.getElementById('excelFileInput');
+            
+            // Kiểm tra xem user đã chọn file chưa
+            if (!fileInput.files || fileInput.files.length === 0) {
+                alert('Vui lòng chọn file Excel trước!');
+                fileInput.click(); // Mở dialog chọn file
+                return;
+            }
+            
+            const file = fileInput.files[0];
+            
+            // Kiểm tra loại file
+            if (!file.name.match(/\.(xlsx|xls)$/i)) {
+                alert('Vui lòng chọn file Excel (.xlsx hoặc .xls)!');
+                return;
+            }
+            
+            if (typeof XLSX === 'undefined') {
+                alert('Lỗi: Thư viện XLSX chưa được load. Vui lòng refresh trang và thử lại.');
+                return;
+            }
+            
+            // Hiển thị thông báo đang xử lý
+            const originalText = newImportBtn.innerHTML;
+            newImportBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Đang xử lý...';
+            newImportBtn.disabled = true;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
+                    let errors = [];
+                    
+                    // Temporarily disable auto-sorting during import for performance
+                    const tempVocabulary = [];
+                    const maxOriginalIndex = vocabulary.length > 0 ? Math.max(...vocabulary.map(v => v.originalIndex)) : -1;
+                    
+                    jsonData.forEach((row, i) => {
+                        const kanji = row['Kanji'] || '';
+                        const hiragana = row['Hiragana/Katakana'];
+                        let romaji = row['Romaji'] || '';
+                        const meaning = row['Nghĩa'];
+                        const lesson = row['Bài'];
+                        
+                        if (!hiragana || !meaning || !lesson) {
+                            errors.push(`Dòng ${i + 1}: Thiếu trường bắt buộc (Hiragana/Katakana, Nghĩa, Bài)`);
+                            return;
+                        }
+                        
+                        if (!romaji) romaji = wanakana.toRomaji(hiragana);
+                        
+                        // Check for duplicates
+                        if (vocabulary.some(v => v.kanji === kanji && v.hiragana === hiragana)) {
+                            errors.push(`Dòng ${i + 1}: Từ vựng đã tồn tại`);
+                            return;
+                        }
+                        
+                        // Sử dụng originalIndex tiếp theo sau từ vựng hiện có
+                        const newVocab = { 
+                            kanji, 
+                            hiragana, 
+                            romaji, 
+                            meaning, 
+                            lesson: lesson.toString(),
+                            originalIndex: maxOriginalIndex + 1 + i, // Đảm bảo không trùng
+                            retryCount: 0 
+                        };
+                        tempVocabulary.push(newVocab);
+                    });
+                    
+                    // Add all new vocabulary at once
+                    vocabulary.push(...tempVocabulary);
+                    localStorage.setItem('vocabulary', JSON.stringify(vocabulary));
+                    
+                    // Sort and refresh table once after all imports
+                    refreshVocabularyTable();
+                    
+                    // Cập nhật lesson buttons và các UI khác
+                    populateLessonButtons();
+                    updateSelectedVocabCount();
+                    updateStartQuizButton();
+                    
+                    if (errors.length > 0) {
+                        alert(`Import hoàn tất với ${tempVocabulary.length} từ vựng thành công và ${errors.length} lỗi:\n${errors.join('\n')}`);
+                    } else {
+                        alert(`Import thành công ${tempVocabulary.length} từ vựng!`);
+                    }
+                    fileInput.value = '';
+                    
+                    // Khôi phục button
+                    newImportBtn.innerHTML = originalText;
+                    newImportBtn.disabled = false;
+                } catch (error) {
+                    console.error('Error processing Excel file:', error);
+                    alert('Lỗi khi xử lý file Excel: ' + error.message + '\n\nVui lòng kiểm tra:\n- File có đúng format không?\n- Các cột có tên đúng không? (Kanji, Hiragana/Katakana, Romaji, Nghĩa, Bài)');
+                    
+                    // Khôi phục button
+                    newImportBtn.innerHTML = originalText;
+                    newImportBtn.disabled = false;
+                }
+            };
+            
+            reader.onerror = function() {
+                alert('Lỗi khi đọc file. Vui lòng thử lại.');
+                newImportBtn.innerHTML = originalText;
+                newImportBtn.disabled = false;
+            };
+            reader.readAsArrayBuffer(file);
+        });
+    }
+    
+    // Download Excel handler
+    const downloadBtn = document.getElementById('download-excel-btn');
+    if (downloadBtn) {
+        // Remove existing listeners to avoid duplicates
+        const newDownloadBtn = downloadBtn.cloneNode(true);
+        downloadBtn.parentNode.replaceChild(newDownloadBtn, downloadBtn);
+        
+        newDownloadBtn.addEventListener('click', () => {
+            console.log('Download Excel button clicked');
+            if (typeof XLSX === 'undefined') {
+                alert('Lỗi: Thư viện XLSX chưa được load. Vui lòng refresh trang và thử lại.');
+                return;
+            }
+            
+            try {
+                const worksheet = XLSX.utils.json_to_sheet(vocabulary.map(v => ({
+                    Kanji: v.kanji || '',
+                    'Hiragana/Katakana': v.hiragana,
+                    Romaji: v.romaji,
+                    Nghĩa: v.meaning,
+                    Bài: v.lesson
+                })));
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Từ vựng');
+                XLSX.writeFile(workbook, 'vocabulary.xlsx');
+                alert('Export thành công!');
+            } catch (error) {
+                console.error('Error exporting Excel file:', error);
+                alert('Lỗi khi export file Excel: ' + error.message);
+            }
+        });
+    }
+    
+    // Thêm event listener cho file input để hiển thị tên file đã chọn
+    const fileInput = document.getElementById('excelFileInput');
+    if (fileInput) {
+        fileInput.addEventListener('change', (e) => {
+            const importBtn = document.getElementById('import-excel-btn');
+            if (e.target.files && e.target.files.length > 0) {
+                const fileName = e.target.files[0].name;
+                importBtn.innerHTML = `<i class="fas fa-file-import"></i> Nhập ${fileName}`;
+            } else {
+                importBtn.innerHTML = '<i class="fas fa-file-import"></i> Nhập Excel';
+            }
+        });
+    }
+}
 
 wordTableBody.addEventListener('click', (e) => {
     const row = e.target.closest('tr');
@@ -1459,6 +1685,13 @@ function checkAnswer(selectedBtn, correct) {
         quizFeedback.style.color = '#28a745';
         playCorrectSound(); // Use optimized sound function
         currentQuestion.retryCount = 0;
+        
+        // Tự động chuyển sang câu tiếp theo nếu bật tính năng auto-continue
+        if (isAutoContinue) {
+            setTimeout(() => {
+                loadQuiz();
+            }, 1500); // Đợi 1.5 giây để người dùng thấy phản hồi
+        }
     } else {
         quizFeedback.innerHTML = `Sai rồi! Đáp án: ${correct} <span style="color: #1e90ff;">(${currentQuestion.romaji})</span>`;
         quizFeedback.style.color = '#dc3545';
@@ -1638,6 +1871,26 @@ document.getElementById('randomize-options-btn').addEventListener('click', (e) =
                 status.textContent = 'Tắt';
             }
         }
+    }
+});
+
+document.getElementById('auto-continue-btn').addEventListener('click', (e) => {
+    isAutoContinue = !isAutoContinue;
+    
+    // Lưu cài đặt vào localStorage
+    localStorage.setItem('isAutoContinue', isAutoContinue.toString());
+    
+    const button = e.target.closest('.setting-toggle');
+    const status = document.getElementById('auto-continue-status');
+    
+    if (isAutoContinue) {
+        button.classList.add('active');
+        status.textContent = 'Bật';
+        showNotification('Tự động tiếp tục đã được bật!', 'success');
+    } else {
+        button.classList.remove('active');
+        status.textContent = 'Tắt';
+        showNotification('Tự động tiếp tục đã được tắt!', 'info');
     }
 });
 
@@ -1955,16 +2208,31 @@ window.addEventListener('scroll', handleNavScroll);
 
 // Khởi tạo trạng thái nút setting
 function initializeSettings() {
-    const button = document.getElementById('randomize-options-btn');
-    const status = document.getElementById('randomize-status');
+    // Random options button
+    const randomButton = document.getElementById('randomize-options-btn');
+    const randomStatus = document.getElementById('randomize-status');
     
-    if (button && status) {
+    if (randomButton && randomStatus) {
         if (isRandomized) {
-            button.classList.add('active');
-            status.textContent = 'Bật';
+            randomButton.classList.add('active');
+            randomStatus.textContent = 'Bật';
         } else {
-            button.classList.remove('active');
-            status.textContent = 'Tắt';
+            randomButton.classList.remove('active');
+            randomStatus.textContent = 'Tắt';
+        }
+    }
+    
+    // Auto-continue button
+    const autoContinueButton = document.getElementById('auto-continue-btn');
+    const autoContinueStatus = document.getElementById('auto-continue-status');
+    
+    if (autoContinueButton && autoContinueStatus) {
+        if (isAutoContinue) {
+            autoContinueButton.classList.add('active');
+            autoContinueStatus.textContent = 'Bật';
+        } else {
+            autoContinueButton.classList.remove('active');
+            autoContinueStatus.textContent = 'Tắt';
         }
     }
 }
@@ -2163,6 +2431,43 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Initial count update
     updateVocabCount();
-    
-    // Floating button đã được setup trong DOMContentLoaded event ở trên
 });
+
+// Help Modal Setup
+function setupHelpModal() {
+    const helpNavItem = document.getElementById('nav-help');
+    const helpModal = document.getElementById('help-modal');
+    const helpCloseBtn = document.getElementById('help-close-btn');
+    
+    if (helpNavItem) {
+        helpNavItem.addEventListener('click', () => {
+            helpModal.classList.add('show');
+            document.body.style.overflow = 'hidden'; // Prevent background scroll
+        });
+    }
+    
+    if (helpCloseBtn) {
+        helpCloseBtn.addEventListener('click', closeHelpModal);
+    }
+    
+    // Close modal when clicking outside
+    if (helpModal) {
+        helpModal.addEventListener('click', (e) => {
+            if (e.target === helpModal) {
+                closeHelpModal();
+            }
+        });
+    }
+    
+    // Close modal with Escape key
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && helpModal.classList.contains('show')) {
+            closeHelpModal();
+        }
+    });
+    
+    function closeHelpModal() {
+        helpModal.classList.remove('show');
+        document.body.style.overflow = ''; // Restore scroll
+    }
+}
